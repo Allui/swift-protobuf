@@ -57,7 +57,7 @@ class EnumGenerator {
     let visibility = generatorOptions.visibilitySourceSnippet
 
     p.print("\n")
-    p.print(enumDescriptor.protoSourceComments())
+    p.print(enumDescriptor.protoSourceCommentsWithDeprecation())
     p.print("\(visibility)enum \(swiftRelativeName): \(namer.swiftProtobufModuleName).Enum {\n")
     p.indent()
     p.print("\(visibility)typealias RawValue = Int\n")
@@ -138,7 +138,7 @@ class EnumGenerator {
   private func generateCasesOrAliases(printer p: inout CodePrinter) {
     let visibility = generatorOptions.visibilitySourceSnippet
     for enumValueDescriptor in namer.uniquelyNamedValues(enum: enumDescriptor) {
-      let comments = enumValueDescriptor.protoSourceComments()
+      let comments = enumValueDescriptor.protoSourceCommentsWithDeprecation()
       if !comments.isEmpty {
         p.print("\n", comments)
       }

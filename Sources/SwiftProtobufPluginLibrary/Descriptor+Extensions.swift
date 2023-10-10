@@ -18,7 +18,7 @@ extension FileDescriptor: ProvidesSourceCodeLocation {
   }
 }
 
-extension Descriptor: ProvidesLocationPath, ProvidesSourceCodeLocation {
+extension Descriptor: ProvidesLocationPath, ProvidesSourceCodeLocation, SimpleProvidesDeprecation {
   public func getLocationPath(path: inout IndexPath) {
     if let containingType = containingType {
       containingType.getLocationPath(path: &path)
@@ -28,9 +28,11 @@ extension Descriptor: ProvidesLocationPath, ProvidesSourceCodeLocation {
     }
     path.append(index)
   }
+    
+  public var isDeprecated: Bool { proto.options.deprecated || file.fileOptions.deprecated }
 }
 
-extension EnumDescriptor: ProvidesLocationPath, ProvidesSourceCodeLocation {
+extension EnumDescriptor: ProvidesLocationPath, ProvidesSourceCodeLocation, SimpleProvidesDeprecation {
   public func getLocationPath(path: inout IndexPath) {
     if let containingType = containingType {
       containingType.getLocationPath(path: &path)
@@ -40,14 +42,18 @@ extension EnumDescriptor: ProvidesLocationPath, ProvidesSourceCodeLocation {
     }
     path.append(index)
   }
+  
+  public var isDeprecated: Bool { proto.options.deprecated || file.fileOptions.deprecated }
 }
 
-extension EnumValueDescriptor: ProvidesLocationPath, ProvidesSourceCodeLocation {
+extension EnumValueDescriptor: ProvidesLocationPath, ProvidesSourceCodeLocation, SimpleProvidesDeprecation {
   public func getLocationPath(path: inout IndexPath) {
     enumType.getLocationPath(path: &path)
     path.append(Google_Protobuf_EnumDescriptorProto.FieldNumbers.value)
     path.append(index)
   }
+    
+  public var isDeprecated: Bool { proto.options.deprecated }
 }
 
 extension OneofDescriptor: ProvidesLocationPath, ProvidesSourceCodeLocation {
@@ -58,7 +64,7 @@ extension OneofDescriptor: ProvidesLocationPath, ProvidesSourceCodeLocation {
   }
 }
 
-extension FieldDescriptor: ProvidesLocationPath, ProvidesSourceCodeLocation {
+extension FieldDescriptor: ProvidesLocationPath, ProvidesSourceCodeLocation, SimpleProvidesDeprecation {
   public func getLocationPath(path: inout IndexPath) {
     if isExtension {
       if let extensionScope = extensionScope {
@@ -99,19 +105,25 @@ extension FieldDescriptor: ProvidesLocationPath, ProvidesSourceCodeLocation {
   var namingBase: String {
     return type == .group ? messageType.name : name
   }
+    
+  public var isDeprecated: Bool { proto.options.deprecated || isExtension && file.fileOptions.deprecated }
 }
 
-extension ServiceDescriptor: ProvidesLocationPath, ProvidesSourceCodeLocation {
+extension ServiceDescriptor: ProvidesLocationPath, ProvidesSourceCodeLocation, SimpleProvidesDeprecation {
   public func getLocationPath(path: inout IndexPath) {
     path.append(Google_Protobuf_FileDescriptorProto.FieldNumbers.service)
     path.append(index)
   }
+  
+  public var isDeprecated: Bool { proto.options.deprecated || file.fileOptions.deprecated }
 }
 
-extension MethodDescriptor: ProvidesLocationPath, ProvidesSourceCodeLocation {
+extension MethodDescriptor: ProvidesLocationPath, ProvidesSourceCodeLocation, SimpleProvidesDeprecation {
   public func getLocationPath(path: inout IndexPath) {
     service.getLocationPath(path: &path)
     path.append(Google_Protobuf_ServiceDescriptorProto.FieldNumbers.method)
     path.append(index)
   }
+    
+  public var isDeprecated: Bool { proto.options.deprecated }
 }
