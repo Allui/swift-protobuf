@@ -124,17 +124,10 @@ class MessageGenerator {
         descriptor.protoSourceCommentsWithDeprecation(),
         "\(visibility)struct \(swiftRelativeName)\(conformances) {\n")
     p.indent()
-    p.print("// \(namer.swiftProtobufModuleName).Message conformance is added in an extension below. See the\n",
-            "// `Message` and `Message+*Additions` files in the SwiftProtobuf library for\n",
-            "// methods supported on all messages.\n")
 
     for f in fields {
       f.generateInterface(printer: &p)
     }
-
-    p.print(
-        "\n",
-        "\(visibility)var unknownFields = \(namer.swiftProtobufModuleName).UnknownStorage()\n")
 
     for o in oneofs {
       o.generateMainEnum(printer: &p)
@@ -194,31 +187,31 @@ class MessageGenerator {
     }
   }
 
-  func generateSendable(printer p: inout CodePrinter) {
-    // Once our minimum supported version has Data be Sendable, @unchecked
-    // will not be needed for all messages, provided that the extension types
-    // in the library are marked Sendable.
-    //
-    // Messages that have a storage class will always need @unchecked.
-    p.print("extension \(swiftFullName): @unchecked Sendable {}\n")
-
-    for o in oneofs {
-      o.generateSendable(printer: &p)
-    }
-
-    for e in enums {
-      e.generateSendable(printer: &p)
-    }
-
-    for m in messages {
-      m.generateSendable(printer: &p)
-    }
-  }
+//  func generateSendable(printer p: inout CodePrinter) {
+//    // Once our minimum supported version has Data be Sendable, @unchecked
+//    // will not be needed for all messages, provided that the extension types
+//    // in the library are marked Sendable.
+//    //
+//    // Messages that have a storage class will always need @unchecked.
+//    p.print("extension \(swiftFullName): @unchecked Sendable {}\n")
+//
+//    for o in oneofs {
+//      o.generateSendable(printer: &p)
+//    }
+//
+//    for e in enums {
+//      e.generateSendable(printer: &p)
+//    }
+//
+//    for m in messages {
+//      m.generateSendable(printer: &p)
+//    }
+//  }
 
   func generateRuntimeSupport(printer p: inout CodePrinter, file: FileGenerator, parent: MessageGenerator?) {
     p.print(
         "\n",
-        "extension \(swiftFullName): \(namer.swiftProtobufModuleName).Message, \(namer.swiftProtobufModuleName)._MessageImplementationBase, \(namer.swiftProtobufModuleName)._ProtoNameProviding {\n")
+        "extension \(swiftFullName): ProtoMessage {\n")
     p.indent()
 
     if let parent = parent {
@@ -241,8 +234,8 @@ class MessageGenerator {
     generateDecodeMessage(printer: &p)
     p.print("\n")
     generateTraverse(printer: &p)
-    p.print("\n")
-    generateMessageEquality(printer: &p)
+//    p.print("\n")
+//    generateMessageEquality(printer: &p)
     p.outdent()
     p.print("}\n")
 
@@ -257,9 +250,9 @@ class MessageGenerator {
 
   private func generateProtoNameProviding(printer p: inout CodePrinter) {
     if fields.isEmpty {
-      p.print("\(visibility)static let _protobuf_nameMap = \(namer.swiftProtobufModuleName)._NameMap()\n")
+      p.print("\(visibility)static let nameMap = [Int: String]()\n")
     } else {
-      p.print("\(visibility)static let _protobuf_nameMap: \(namer.swiftProtobufModuleName)._NameMap = [\n")
+      p.print("\(visibility)static let nameMap: [Int: String] = [\n")
       p.indent()
       for f in fields {
         p.print("\(f.number): \(f.fieldMapNames),\n")
@@ -274,7 +267,7 @@ class MessageGenerator {
   ///
   /// - Parameter p: The code printer.
   private func generateDecodeMessage(printer p: inout CodePrinter) {
-    p.print("\(visibility)mutating func decodeMessage<D: \(namer.swiftProtobufModuleName).Decoder>(decoder: inout D) throws {\n")
+    p.print("\(visibility)mutating func decodeMessage(decoder: ProtoDecoder) throws {\n")
     p.indent()
     if storage != nil {
       p.print("_ = _uniqueStorage()\n")
@@ -344,7 +337,7 @@ class MessageGenerator {
   ///
   /// - Parameter p: The code printer.
   private func generateTraverse(printer p: inout CodePrinter) {
-    p.print("\(visibility)func traverse<V: \(namer.swiftProtobufModuleName).Visitor>(visitor: inout V) throws {\n")
+    p.print("\(visibility)func traverse(visitor: ProtoVisitor) throws {\n")
     p.indent()
     generateWithLifetimeExtension(printer: &p, throws: true) { p in
       if let storage = storage {
@@ -380,7 +373,6 @@ class MessageGenerator {
         nextRange = ranges.next()
       }
     }
-    p.print("try unknownFields.traverse(visitor: &visitor)\n")
     p.outdent()
     p.print("}\n")
   }
@@ -415,7 +407,6 @@ class MessageGenerator {
       p.outdent()
       p.print("}\n")
     }
-    p.print("if lhs.unknownFields != rhs.unknownFields {return false}\n")
     if isExtensible {
       p.print("if lhs._protobuf_extensionFieldValues != rhs._protobuf_extensionFieldValues {return false}\n")
     }

@@ -139,6 +139,10 @@ class MessageFieldGenerator: FieldGeneratorBase, FieldGenerator {
     func generateStorageClassClone(printer p: inout CodePrinter) {
         p.print("\(underscoreSwiftName) = source.\(underscoreSwiftName)\n")
     }
+    
+    func generateStorageHash(printer p: inout CodePrinter) {
+        p.print("hasher.combine(\(underscoreSwiftName))\n")
+    }
 
     func generateFieldComparison(printer p: inout CodePrinter) {
         let lhsProperty: String

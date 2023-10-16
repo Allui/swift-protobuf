@@ -80,6 +80,10 @@ class OneofGenerator {
         func generateStorageClassClone(printer p: inout CodePrinter) {
             oneof.generateStorageClassClone(printer: &p, field: self)
         }
+        
+        func generateStorageHash(printer p: inout CodePrinter) {
+            oneof.generateStorageHash(printer: &p, field: self)
+        }
 
         func generateDecodeFieldCase(printer p: inout CodePrinter) {
             oneof.generateDecodeFieldCase(printer: &p, field: self)
@@ -205,7 +209,7 @@ class OneofGenerator {
         p.print(
             "\n",
             comments,
-            "\(visibility)enum \(swiftRelativeName): Equatable {\n")
+            "\(visibility)enum \(swiftRelativeName): Hashable {\n")
         p.indent()
 
         // Oneof case for each ivar
@@ -254,50 +258,50 @@ class OneofGenerator {
         }
 
         // Equatable conformance
-        p.print("\n")
+//        p.print("\n")
+//        p.outdent()
+//        p.print("#if !swift(>=4.1)\n")
+//        p.indent()
+//        p.print(
+//            "\(visibility)static func ==(lhs: \(swiftFullName), rhs: \(swiftFullName)) -> Bool {\n")
+//        p.indent()
+//        p.print(
+//            "// The use of inline closures is to circumvent an issue where the compiler\n",
+//            "// allocates stack space for every case branch when no optimizations are\n",
+//            "// enabled. https://github.com/apple/swift-protobuf/issues/1034\n",
+//            "switch (lhs, rhs) {\n")
+//        for f in fields {
+//            p.print(
+//                "case (\(f.dottedSwiftName), \(f.dottedSwiftName)): return {\n")
+//          p.indent()
+//          p.print(
+//                "guard case \(f.dottedSwiftName)(let l) = lhs, case \(f.dottedSwiftName)(let r) = rhs else { preconditionFailure() }\n",
+//                "return l == r\n")
+//          p.outdent()
+//          p.print(
+//                "}()\n")
+//        }
+//        if fields.count > 1 {
+//            // A tricky edge case: If the oneof only has a single case, then
+//            // the case pattern generated above is exhaustive and generating a
+//            // default produces a compiler error. If there is more than one
+//            // case, then the case patterns are not exhaustive (because we
+//            // don't compare mismatched pairs), and we have to include a
+//            // default.
+//            p.print("default: return false\n")
+//        }
+//        p.print("}\n")
+//        p.outdent()
+//        p.print("}\n")
+//        p.print("#endif\n")
         p.outdent()
-        p.print("#if !swift(>=4.1)\n")
-        p.indent()
-        p.print(
-            "\(visibility)static func ==(lhs: \(swiftFullName), rhs: \(swiftFullName)) -> Bool {\n")
-        p.indent()
-        p.print(
-            "// The use of inline closures is to circumvent an issue where the compiler\n",
-            "// allocates stack space for every case branch when no optimizations are\n",
-            "// enabled. https://github.com/apple/swift-protobuf/issues/1034\n",
-            "switch (lhs, rhs) {\n")
-        for f in fields {
-            p.print(
-                "case (\(f.dottedSwiftName), \(f.dottedSwiftName)): return {\n")
-          p.indent()
-          p.print(
-                "guard case \(f.dottedSwiftName)(let l) = lhs, case \(f.dottedSwiftName)(let r) = rhs else { preconditionFailure() }\n",
-                "return l == r\n")
-          p.outdent()
-          p.print(
-                "}()\n")
-        }
-        if fields.count > 1 {
-            // A tricky edge case: If the oneof only has a single case, then
-            // the case pattern generated above is exhaustive and generating a
-            // default produces a compiler error. If there is more than one
-            // case, then the case patterns are not exhaustive (because we
-            // don't compare mismatched pairs), and we have to include a
-            // default.
-            p.print("default: return false\n")
-        }
-        p.print("}\n")
-        p.outdent()
-        p.print("}\n")
-        p.outdent()
-        p.print("#endif\n")
         p.print("}\n")
     }
 
-    func generateSendable(printer p: inout CodePrinter) {
-        // Once our minimum supported version has Data be Sendable, @unchecked could be removed.
-        p.print("extension \(swiftFullName): @unchecked Sendable {}\n")
-    }
+//    func generateSendable(printer p: inout CodePrinter) {
+//        // Once our minimum supported version has Data be Sendable, @unchecked could be removed.
+//        p.print("extension \(swiftFullName): @unchecked Sendable {}\n")
+//    }
 
     private func gerenateOneofEnumProperty(printer p: inout CodePrinter) {
         let visibility = generatorOptions.visibilitySourceSnippet
@@ -369,6 +373,13 @@ class OneofGenerator {
         guard field === fields.first else { return }
 
         p.print("\(underscoreSwiftFieldName) = source.\(underscoreSwiftFieldName)\n")
+    }
+    
+    func generateStorageHash(printer p: inout CodePrinter, field: MemberFieldGenerator) {
+        // First field causes the output.
+        guard field === fields.first else { return }
+        
+        p.print("hasher.combine(\(underscoreSwiftFieldName))\n")
     }
 
     func generateDecodeFieldCase(printer p: inout CodePrinter, field: MemberFieldGenerator) {

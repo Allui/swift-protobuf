@@ -39,7 +39,7 @@ class MessageStorageClassGenerator {
   ///
   /// - Parameter p: The code printer.
   func generateTypeDeclaration(printer p: inout CodePrinter) {
-    p.print("fileprivate class _StorageClass {\n")
+    p.print("fileprivate class _StorageClass: Hashable {\n")
     p.indent()
 
     generateStoredProperties(printer: &p)
@@ -56,10 +56,31 @@ class MessageStorageClassGenerator {
         "private init() {}\n",
         "\n")
     generateClone(printer: &p)
-
+    p.print("\n")
+    generateHash(printer: &p)
+    p.print("\n")
+    generateEqutableConformance(printer: &p)
     p.outdent()
     p.print("}\n")
   }
+    
+    func generateHash(printer p: inout CodePrinter) {
+        p.print("func hash(into hasher: inout Hasher) {\n")
+        p.indent()
+        for f in fields {
+            f.generateStorageHash(printer: &p)
+        }
+        p.outdent()
+        p.print("}\n")
+    }
+    
+    func generateEqutableConformance(printer p: inout CodePrinter) {
+        p.print("static func == (lhs: _StorageClass, rhs: _StorageClass) -> Bool {\n")
+        p.indent()
+        p.print("lhs.hashValue == rhs.hashValue\n")
+        p.outdent()
+        p.print("}\n")
+    }
 
   /// Generated the uniqueStorage() implementation.
   func generateUniqueStorage(printer p: inout CodePrinter) {

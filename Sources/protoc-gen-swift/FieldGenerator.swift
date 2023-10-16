@@ -33,6 +33,9 @@ protocol FieldGenerator {
 
   /// Generate the line to copy this field during a _StorageClass clone.
   func generateStorageClassClone(printer: inout CodePrinter)
+    
+  /// Generate the line to copy this field during a _StorageClass clone.
+  func generateStorageHash(printer: inout CodePrinter)
 
   /// Generate the case and decoder invoke needed for this field.
   func generateDecodeFieldCase(printer: inout CodePrinter)
@@ -75,22 +78,7 @@ class FieldGeneratorBase {
     } else {
       protoName = fieldDescriptor.name
     }
-
-    let jsonName = fieldDescriptor.jsonName ?? protoName
-    if jsonName == protoName {
-      /// The proto and JSON names are identical:
-      return ".same(proto: \"\(protoName)\")"
-    } else {
-      let libraryGeneratedJsonName = NamingUtils.toJsonFieldName(protoName)
-      if jsonName == libraryGeneratedJsonName {
-        /// The library will generate the same thing protoc gave, so
-        /// we can let the library recompute this:
-        return ".standard(proto: \"\(protoName)\")"
-      } else {
-        /// The library's generation didn't match, so specify this explicitly.
-        return ".unique(proto: \"\(protoName)\", json: \"\(jsonName)\")"
-      }
-    }
+    return "\"\(protoName)\""
   }
 
   init(descriptor: FieldDescriptor) {

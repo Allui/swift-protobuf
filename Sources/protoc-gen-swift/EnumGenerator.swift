@@ -58,7 +58,7 @@ class EnumGenerator {
 
     p.print("\n")
     p.print(enumDescriptor.protoSourceCommentsWithDeprecation())
-    p.print("\(visibility)enum \(swiftRelativeName): \(namer.swiftProtobufModuleName).Enum {\n")
+    p.print("\(visibility)enum \(swiftRelativeName): ProtoEnum {\n")
     p.indent()
     p.print("\(visibility)typealias RawValue = Int\n")
 
@@ -125,7 +125,7 @@ class EnumGenerator {
 
   func generateRuntimeSupport(printer p: inout CodePrinter) {
     p.print("\n")
-    p.print("extension \(swiftFullName): \(namer.swiftProtobufModuleName)._ProtoNameProviding {\n")
+    p.print("extension \(swiftFullName) {\n")
     p.indent()
     generateProtoNameProviding(printer: &p)
     p.outdent()
@@ -161,15 +161,10 @@ class EnumGenerator {
   private func generateProtoNameProviding(printer p: inout CodePrinter) {
     let visibility = generatorOptions.visibilitySourceSnippet
 
-    p.print("\(visibility)static let _protobuf_nameMap: \(namer.swiftProtobufModuleName)._NameMap = [\n")
+    p.print("\(visibility)static let nameMap: [Int: String] = [\n")
     p.indent()
     for v in mainEnumValueDescriptorsSorted {
-      if v.aliases.isEmpty {
-        p.print("\(v.number): .same(proto: \"\(v.name)\"),\n")
-      } else {
-        let aliasNames = v.aliases.map({ "\"\($0.name)\"" }).joined(separator: ", ")
-        p.print("\(v.number): .aliased(proto: \"\(v.name)\", aliases: [\(aliasNames)]),\n")
-      }
+        p.print("\(v.number): \"\(v.name)\",\n")
     }
     p.outdent()
     p.print("]\n")

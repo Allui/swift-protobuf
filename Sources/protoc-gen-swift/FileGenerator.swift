@@ -90,6 +90,7 @@ class FileGenerator {
         }
 
         p.print("import Foundation\n")
+        p.print("import GRPCNetwork\n")
 
         if self.generatorOptions.implementationOnlyImports,
            self.generatorOptions.visibility == .public {
@@ -110,11 +111,7 @@ class FileGenerator {
                 return ""
             }
         }()
-        if !fileDescriptor.isBundledProto {
-            // The well known types ship with the runtime, everything else needs
-            // to import the runtime.
-            p.print("\(visibilityAnnotation)import \(namer.swiftProtobufModuleName)\n")
-        }
+        
         if let neededImports = generatorOptions.protoToModuleMappings.neededModules(forFile: fileDescriptor) {
             p.print("\n")
             for i in neededImports {
@@ -122,8 +119,8 @@ class FileGenerator {
             }
         }
 
-        p.print("\n")
-        generateVersionCheck(printer: &p)
+//        p.print("\n")
+//        generateVersionCheck(printer: &p)
 
         let extensionSet =
             ExtensionSetGenerator(fileDescriptor: fileDescriptor,
@@ -160,20 +157,14 @@ class FileGenerator {
             }
         }
 
-        var sendablePrinter = CodePrinter()
-        for e in enums {
-            e.generateSendable(printer: &sendablePrinter)
-        }
-
-        for m in messages {
-            m.generateSendable(printer: &sendablePrinter)
-        }
-
-        if !sendablePrinter.isEmpty {
-            p.print("\n#if swift(>=5.5) && canImport(_Concurrency)\n")
-            p.print(sendablePrinter.content)
-            p.print("#endif  // swift(>=5.5) && canImport(_Concurrency)\n")
-        }
+//        var sendablePrinter = CodePrinter()
+//        for e in enums {
+//            e.generateSendable(printer: &sendablePrinter)
+//        }
+//
+//        for m in messages {
+//            m.generateSendable(printer: &sendablePrinter)
+//        }
 
         if !extensionSet.isEmpty {
             let pathParts = splitPath(pathname: fileDescriptor.name)

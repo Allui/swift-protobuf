@@ -60,7 +60,7 @@ public final class SwiftProtobufNamer {
   public func fullName(message: Descriptor) -> String {
     let relativeName = self.relativeName(message: message)
     guard let containingType = message.containingType else {
-      return modulePrefix(file: message.file) + relativeName
+      return relativeName
     }
     return fullName(message:containingType) + "." + relativeName
   }
