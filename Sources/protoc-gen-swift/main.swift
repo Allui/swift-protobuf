@@ -35,6 +35,8 @@ struct GeneratorPlugin: CodeGenerator {
 
     auditProtoCVersion(context: protoCompilerContext)
     var errorString: String? = nil
+    var names: [String : Int] = [:]
+
     for fileDescriptor in files {
       let fileGenerator = FileGenerator(fileDescriptor: fileDescriptor, generatorOptions: options)
       var printer = CodePrinter()
@@ -44,7 +46,8 @@ struct GeneratorPlugin: CodeGenerator {
         let fullError = files.count > 1 ? "\(fileDescriptor.name): \(errorString)" : errorString
         throw GenerationError.message(message: fullError)
       }
-      try generatorOutputs.add(fileName: fileGenerator.outputFilename, contents: printer.content)
+      let name = fileGenerator.getOutputFilename(existing: &names)
+      try generatorOutputs.add(fileName: name, contents: printer.content)
     }
   }
 

@@ -24,19 +24,33 @@ class FileGenerator {
     private let generatorOptions: GeneratorOptions
     private let namer: SwiftProtobufNamer
 
-    var outputFilename: String {
+    func getOutputFilename(existing names: inout [String: Int]) -> String {
         let ext = ".pb.swift"
         let pathParts = splitPath(pathname: fileDescriptor.name)
         switch generatorOptions.outputNaming {
         case .fullPath:
-            return pathParts.dir + pathParts.base + ext
+            let name = makeName(original: pathParts.base, existing: &names)
+            return pathParts.dir + name + ext
         case .pathToUnderscores:
             let dirWithUnderscores =
                 pathParts.dir.replacingOccurrences(of: "/", with: "_")
             return dirWithUnderscores + pathParts.base + ext
         case .dropPath:
-            return pathParts.base + ext
+            let name = makeName(original: pathParts.base, existing: &names)
+            return name + ext
+        case .package:
+            let name = makeName(original: pathParts.base, existing: &names)
+            return fileDescriptor.package + "/" + name + ext
         }
+    }
+
+    private func makeName(original name: String, existing names: inout [String: Int]) -> String {
+        if let count = names[name] {
+            names[name] = count + 1
+            return name + ".\(count)"
+        }
+        names[name] = 1
+        return name
     }
 
     init(fileDescriptor: FileDescriptor,

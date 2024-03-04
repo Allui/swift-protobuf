@@ -15,6 +15,7 @@ class GeneratorOptions {
     case fullPath
     case pathToUnderscores
     case dropPath
+    case package
 
     init?(flag: String) {
       switch flag.lowercased() {
@@ -24,6 +25,8 @@ class GeneratorOptions {
         self = .pathToUnderscores
       case "droppath", "drop_path":
         self = .dropPath
+      case "package":
+        self = .package
       default:
         return nil
       }
