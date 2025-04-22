@@ -229,33 +229,26 @@ extension FieldDescriptor {
     if case (let keyField, let valueField)? = messageType?.mapKeyAndValue {
       let keyTraits = keyField.traitsType(namer: namer)
       let valueTraits = valueField.traitsType(namer: namer)
-      switch valueField.type {
-      case .message:  // Map's can't have a group as the value
-        return "\(namer.swiftProtobufModuleName)._ProtobufMessageMap<\(keyTraits),\(valueTraits)>"
-      case .enum:
-        return "\(namer.swiftProtobufModuleName)._ProtobufEnumMap<\(keyTraits),\(valueTraits)>"
-      default:
-        return "\(namer.swiftProtobufModuleName)._ProtobufMap<\(keyTraits),\(valueTraits)>"
-      }
+        return "MapContext<\(keyTraits), \(valueTraits)>"
     }
     switch type {
-    case .double: return "\(namer.swiftProtobufModuleName).ProtobufDouble"
-    case .float: return "\(namer.swiftProtobufModuleName).ProtobufFloat"
-    case .int64: return "\(namer.swiftProtobufModuleName).ProtobufInt64"
-    case .uint64: return "\(namer.swiftProtobufModuleName).ProtobufUInt64"
-    case .int32: return "\(namer.swiftProtobufModuleName).ProtobufInt32"
-    case .fixed64: return "\(namer.swiftProtobufModuleName).ProtobufFixed64"
-    case .fixed32: return "\(namer.swiftProtobufModuleName).ProtobufFixed32"
-    case .bool: return "\(namer.swiftProtobufModuleName).ProtobufBool"
-    case .string: return "\(namer.swiftProtobufModuleName).ProtobufString"
+    case .double: return "ProtoDouble"
+    case .float: return "ProtoFloat"
+    case .int64: return "ProtoInt64"
+    case .uint64: return "ProtoUInt64"
+    case .int32: return "ProtoInt32.self"
+    case .fixed64: return "ProtoFixed64"
+    case .fixed32: return "ProtoFixed32"
+    case .bool: return "ProtoBool"
+    case .string: return "ProtoString"
     case .group, .message: return namer.fullName(message: messageType)
-    case .bytes: return "\(namer.swiftProtobufModuleName).ProtobufBytes"
-    case .uint32: return "\(namer.swiftProtobufModuleName).ProtobufUInt32"
+    case .bytes: return "ProtoBytes"
+    case .uint32: return "ProtoUInt32"
     case .enum: return namer.fullName(enum: enumType)
-    case .sfixed32: return "\(namer.swiftProtobufModuleName).ProtobufSFixed32"
-    case .sfixed64: return "\(namer.swiftProtobufModuleName).ProtobufSFixed64"
-    case .sint32: return "\(namer.swiftProtobufModuleName).ProtobufSInt32"
-    case .sint64: return "\(namer.swiftProtobufModuleName).ProtobufSInt64"
+    case .sfixed32: return "ProtoSFixed32"
+    case .sfixed64: return "ProtoSFixed64"
+    case .sint32: return "ProtoSInt32"
+    case .sint64: return "ProtoSInt64"
     }
   }
 }
